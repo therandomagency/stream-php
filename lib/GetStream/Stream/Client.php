@@ -23,6 +23,12 @@ class Client
     protected $location;
 
     /**
+     * @var array
+     */
+    protected $guzzleOptions = [];
+
+
+    /**
      * @var Signer
      */
     public $signer;
@@ -51,6 +57,11 @@ class Client
         $this->api_version = $api_version;
         $this->location = $location;
         $this->timeout = $timeout;
+    }
+
+    public function setGuzzleDefaultOption($option, $value)
+    {
+        $this->guzzleOptions[$option] = $value;
     }
 
     /**
@@ -97,7 +108,14 @@ class Client
         if (null === $token) {
             $token = $this->signer->signature($feed_slug . $user_id);
         }
-        return new Feed($this, $feed_slug, $user_id, $this->api_key, $token);
+
+        $feed = new Feed($this, $feed_slug, $user_id, $this->api_key, $token);
+
+        foreach ($this->guzzleOptions as $option => $value) {
+            $feed->setGuzzleDefaultOption($option, $value);
+        }
+
+        return $feed;
     }
 
     /**
